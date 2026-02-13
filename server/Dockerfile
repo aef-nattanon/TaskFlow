@@ -30,12 +30,8 @@ COPY --from=base /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=base /app/dist ./dist
 COPY --from=base /app/prisma ./prisma
 
-# Create data directory for SQLite
-RUN mkdir -p /app/data
-
 ENV NODE_ENV=production
 ENV PORT=3001
-ENV DATABASE_URL="file:/app/data/taskflow.db"
 
 EXPOSE 3001
 
