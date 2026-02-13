@@ -26,14 +26,15 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy generated Prisma client, schema, and built JS
-COPY --from=base /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=base /app/dist ./dist
-COPY --from=base /app/prisma ./prisma
+COPY --from=base --chown=node:node /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=base --chown=node:node /app/dist ./dist
+COPY --from=base --chown=node:node /app/prisma ./prisma
 
 ENV NODE_ENV=production
 ENV PORT=3001
 
 EXPOSE 3001
+USER node
 
 # Push schema to DB and start server
 CMD npx prisma db push --skip-generate && node dist/index.js

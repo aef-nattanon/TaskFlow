@@ -8,8 +8,8 @@ router.use(authenticate);
 
 router.get('/me', getMe);
 
-router.patch('/me', validate([
-  { field: 'name', required: true, type: 'string', minLength: 1 },
-]), updateMe);
+import { updateMeSchema } from '../schemas/user.schema';
+
+router.patch('/me', validate(updateMeSchema), updateMe);
 
 export default router;

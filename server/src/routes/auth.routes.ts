@@ -4,15 +4,10 @@ import { validate } from '../middleware/validate';
 
 const router = Router();
 
-router.post('/register', validate([
-  { field: 'email', required: true, type: 'string', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-  { field: 'password', required: true, type: 'string', minLength: 8 },
-  { field: 'name', required: true, type: 'string', minLength: 1 },
-]), register);
+import { registerSchema, loginSchema } from '../schemas/auth.schema';
 
-router.post('/login', validate([
-  { field: 'email', required: true, type: 'string' },
-  { field: 'password', required: true, type: 'string' },
-]), login);
+router.post('/register', validate(registerSchema), register);
+
+router.post('/login', validate(loginSchema), login);
 
 export default router;

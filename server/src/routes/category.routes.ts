@@ -8,9 +8,8 @@ router.use(authenticate);
 
 router.get('/', getCategories);
 
-router.post('/', validate([
-  { field: 'name', required: true, type: 'string', minLength: 1 },
-  { field: 'color', required: true, type: 'string', minLength: 1 },
-]), createCategory);
+import { createCategorySchema } from '../schemas/category.schema';
+
+router.post('/', validate(createCategorySchema), createCategory);
 
 export default router;
