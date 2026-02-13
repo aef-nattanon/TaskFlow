@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { Task, User, Category, Priority, TaskStatus } from './types';
-import { MOCK_TASKS, DEFAULT_CATEGORIES } from './constants';
+import { Task, User, Category } from './types';
+import { api } from './lib/api';
 
 interface AppState {
   user: User | null;
@@ -13,10 +13,11 @@ interface AppState {
 type Action =
   | { type: 'LOGIN'; payload: User }
   | { type: 'LOGOUT' }
+  | { type: 'SET_TASKS'; payload: Task[] }
+  | { type: 'SET_CATEGORIES'; payload: Category[] }
   | { type: 'ADD_TASK'; payload: Task }
   | { type: 'UPDATE_TASK'; payload: Task }
   | { type: 'DELETE_TASK'; payload: string }
-  | { type: 'TOGGLE_TASK_STATUS'; payload: string }
   | { type: 'ADD_CATEGORY'; payload: Category }
   | { type: 'UPDATE_USER'; payload: Partial<User> }
   | { type: 'TOGGLE_THEME' };
@@ -31,8 +32,8 @@ const getInitialTheme = (): 'light' | 'dark' => {
 
 const initialState: AppState = {
   user: null,
-  tasks: MOCK_TASKS,
-  categories: DEFAULT_CATEGORIES,
+  tasks: [],
+  categories: [],
   isAuthenticated: false,
   theme: getInitialTheme(),
 };
@@ -47,12 +48,13 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'LOGIN':
       return { ...state, user: action.payload, isAuthenticated: true };
     case 'LOGOUT':
-      return { ...state, user: null, isAuthenticated: false };
+      return { ...state, user: null, tasks: [], categories: [], isAuthenticated: false };
+    case 'SET_TASKS':
+      return { ...state, tasks: action.payload };
+    case 'SET_CATEGORIES':
+      return { ...state, categories: action.payload };
     case 'ADD_TASK':
-      // Assign an order that puts it at the top or bottom. Here we put it at top (smaller order).
-      const minOrder = state.tasks.length > 0 ? Math.min(...state.tasks.map(t => t.order)) : 0;
-      const taskWithOrder = { ...action.payload, order: minOrder - 100 };
-      return { ...state, tasks: [taskWithOrder, ...state.tasks] };
+      return { ...state, tasks: [action.payload, ...state.tasks] };
     case 'UPDATE_TASK':
       return {
         ...state,
@@ -60,26 +62,11 @@ const appReducer = (state: AppState, action: Action): AppState => {
       };
     case 'DELETE_TASK':
       return { ...state, tasks: state.tasks.filter((t) => t.id !== action.payload) };
-    case 'TOGGLE_TASK_STATUS':
-      return {
-        ...state,
-        tasks: state.tasks.map((t) =>
-          t.id === action.payload
-            ? {
-                ...t,
-                status: t.status === 'Active' ? 'Completed' : 'Active',
-                completedAt: t.status === 'Active' ? new Date().toISOString() : undefined,
-              }
-            : t
-        ),
-      };
     case 'ADD_CATEGORY':
       return { ...state, categories: [...state.categories, action.payload] };
     case 'UPDATE_USER':
       if (!state.user) return state;
-      const updatedUser = { ...state.user, ...action.payload };
-      localStorage.setItem('taskflow_user', JSON.stringify(updatedUser));
-      return { ...state, user: updatedUser };
+      return { ...state, user: { ...state.user, ...action.payload } };
     case 'TOGGLE_THEME':
       const newTheme = state.theme === 'light' ? 'dark' : 'light';
       localStorage.setItem('taskflow_theme', newTheme);
@@ -92,11 +79,19 @@ const appReducer = (state: AppState, action: Action): AppState => {
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Simulate persistent auth check
+  // Restore auth from token
   useEffect(() => {
-    const storedUser = localStorage.getItem('taskflow_user');
-    if (storedUser) {
-      dispatch({ type: 'LOGIN', payload: JSON.parse(storedUser) });
+    const token = localStorage.getItem('taskflow_token');
+    if (token) {
+      Promise.all([api.getMe(), api.getTasks(), api.getCategories()])
+        .then(([userData, tasksData, catsData]) => {
+          dispatch({ type: 'LOGIN', payload: userData.user });
+          dispatch({ type: 'SET_TASKS', payload: tasksData.tasks });
+          dispatch({ type: 'SET_CATEGORIES', payload: catsData.categories });
+        })
+        .catch(() => {
+          localStorage.removeItem('taskflow_token');
+        });
     }
   }, []);
 

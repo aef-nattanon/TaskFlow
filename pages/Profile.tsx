@@ -4,6 +4,7 @@ import { ArrowLeft, Save, User as UserIcon, Mail, Shield, Bell, Moon, LogOut, Su
 import { useAppStore } from '../store';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import { api } from '../lib/api';
 
 const Profile: React.FC = () => {
   const { state, dispatch } = useAppStore();
@@ -18,20 +19,21 @@ const Profile: React.FC = () => {
     }
   }, [state.user]);
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setSuccessMessage('');
 
-    // Simulate API delay
-    setTimeout(() => {
-      dispatch({ type: 'UPDATE_USER', payload: { name } });
-      setIsLoading(false);
+    try {
+      const { user } = await api.updateMe({ name });
+      dispatch({ type: 'UPDATE_USER', payload: user });
       setSuccessMessage('Profile updated successfully');
-      
-      // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
-    }, 800);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleTheme = () => {

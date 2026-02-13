@@ -25,7 +25,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const { state } = useAppStore();
   
   // In a real app, you might want to show a loading spinner while checking auth status
-  if (!state.isAuthenticated && !localStorage.getItem('taskflow_user')) {
+  if (!state.isAuthenticated && !localStorage.getItem('taskflow_token')) {
     return <Navigate to="/signin" replace />;
   }
 
@@ -34,7 +34,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { state } = useAppStore();
-    if (state.isAuthenticated || localStorage.getItem('taskflow_user')) {
+    if (state.isAuthenticated || localStorage.getItem('taskflow_token')) {
         return <Navigate to="/dashboard" replace />;
     }
     return <>{children}</>;

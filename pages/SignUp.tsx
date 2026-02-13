@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { useAppStore } from '../store';
+import { api } from '../lib/api';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const SignUp: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -28,19 +29,22 @@ const SignUp: React.FC = () => {
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser = {
-        id: 'u1',
-        email: email,
-        name: email.split('@')[0],
-      };
-      localStorage.setItem('taskflow_user', JSON.stringify(mockUser));
-      dispatch({ type: 'LOGIN', payload: mockUser });
-      setIsLoading(false);
+
+    try {
+      const { token, user } = await api.register(email, password, email.split('@')[0]);
+      localStorage.setItem('taskflow_token', token);
+      dispatch({ type: 'LOGIN', payload: user });
+
+      const [tasksData, catsData] = await Promise.all([api.getTasks(), api.getCategories()]);
+      dispatch({ type: 'SET_TASKS', payload: tasksData.tasks });
+      dispatch({ type: 'SET_CATEGORIES', payload: catsData.categories });
+
       navigate('/dashboard');
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message || 'Registration failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

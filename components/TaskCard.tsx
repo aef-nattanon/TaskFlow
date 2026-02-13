@@ -3,6 +3,7 @@ import { Check, Clock, Edit2, Trash2, CalendarDays } from 'lucide-react';
 import { Task, Category } from '../types';
 import { PRIORITY_COLORS } from '../constants';
 import { useAppStore } from '../store';
+import { api } from '../lib/api';
 
 interface TaskCardProps {
   task: Task;
@@ -13,14 +14,24 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
   const { state, dispatch } = useAppStore();
   const category = state.categories.find((c) => c.id === task.categoryId);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this task?')) {
-      dispatch({ type: 'DELETE_TASK', payload: task.id });
+      try {
+        await api.deleteTask(task.id);
+        dispatch({ type: 'DELETE_TASK', payload: task.id });
+      } catch (err) {
+        console.error('Failed to delete task:', err);
+      }
     }
   };
 
-  const handleToggle = () => {
-    dispatch({ type: 'TOGGLE_TASK_STATUS', payload: task.id });
+  const handleToggle = async () => {
+    try {
+      const { task: updatedTask } = await api.toggleTask(task.id);
+      dispatch({ type: 'UPDATE_TASK', payload: updatedTask });
+    } catch (err) {
+      console.error('Failed to toggle task:', err);
+    }
   };
 
   const priorityColor = PRIORITY_COLORS[task.priority];

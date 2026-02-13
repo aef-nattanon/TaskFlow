@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { useAppStore } from '../store';
 import { FilterState, Task, Priority } from '../types';
 import { PRIORITY_ORDER } from '../constants';
+import { api } from '../lib/api';
 import Sidebar from '../components/Sidebar';
 import TaskCard from '../components/TaskCard';
 import CalendarView from '../components/CalendarView';
@@ -102,30 +103,26 @@ const Dashboard: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return;
 
-    if (editingTask) {
-      dispatch({
-        type: 'UPDATE_TASK',
-        payload: { ...editingTask, ...formData },
-      });
-    } else {
-      const newTask: Task = {
-        id: crypto.randomUUID(),
-        ...formData,
-        status: 'Active',
-        createdAt: new Date().toISOString(),
-        order: Date.now(), // Fallback order
-      };
-      dispatch({ type: 'ADD_TASK', payload: newTask });
+    try {
+      if (editingTask) {
+        const { task } = await api.updateTask(editingTask.id, formData);
+        dispatch({ type: 'UPDATE_TASK', payload: task });
+      } else {
+        const { task } = await api.createTask(formData);
+        dispatch({ type: 'ADD_TASK', payload: task });
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Failed to save task:', err);
     }
-    setIsModalOpen(false);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('taskflow_user');
+    localStorage.removeItem('taskflow_token');
     dispatch({ type: 'LOGOUT' });
   };
 
@@ -159,10 +156,12 @@ const Dashboard: React.FC = () => {
         newOrder = ((prevTask.order || 0) + (nextTask.order || 0)) / 2;
     }
 
-    dispatch({ 
-        type: 'UPDATE_TASK', 
-        payload: { ...movedTask, order: newOrder } 
+    dispatch({
+        type: 'UPDATE_TASK',
+        payload: { ...movedTask, order: newOrder }
     });
+    // Persist to server
+    api.updateTask(movedTask.id, { order: newOrder });
   };
 
   return (

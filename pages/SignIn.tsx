@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { useAppStore } from '../store';
+import { api } from '../lib/api';
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
@@ -10,23 +11,28 @@ const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      const mockUser = {
-        id: 'u1',
-        email: email,
-        name: email.split('@')[0],
-      };
-      localStorage.setItem('taskflow_user', JSON.stringify(mockUser));
-      dispatch({ type: 'LOGIN', payload: mockUser });
-      setIsLoading(false);
+    setError('');
+
+    try {
+      const { token, user } = await api.login(email, password);
+      localStorage.setItem('taskflow_token', token);
+      dispatch({ type: 'LOGIN', payload: user });
+
+      const [tasksData, catsData] = await Promise.all([api.getTasks(), api.getCategories()]);
+      dispatch({ type: 'SET_TASKS', payload: tasksData.tasks });
+      dispatch({ type: 'SET_CATEGORIES', payload: catsData.categories });
+
       navigate('/dashboard');
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -65,6 +71,10 @@ const SignIn: React.FC = () => {
                 </a>
               </div>
           </div>
+
+          {error && (
+            <p className="text-sm text-red-600 dark:text-red-400 text-center">{error}</p>
+          )}
 
           <Button type="submit" className="w-full" size="lg" isLoading={isLoading}>
             Sign In
