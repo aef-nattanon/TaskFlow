@@ -44,14 +44,14 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-slate-200">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4 transition-colors animate-fade-in">
+      <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 border border-slate-200 dark:border-slate-700 animate-fade-in-up">
         <div className="text-center mb-8">
            <div className="inline-flex w-12 h-12 bg-blue-600 rounded-lg items-center justify-center text-white font-bold text-xl mb-4">
               TF
           </div>
-          <h2 className="text-2xl font-bold text-slate-900">Create an account</h2>
-          <p className="text-slate-500 mt-2">Start organizing your life today</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Create an account</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">Start organizing your life today</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -86,9 +86,9 @@ const SignUp: React.FC = () => {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-slate-600">
+        <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
           Already have an account?{' '}
-          <Link to="/signin" className="font-medium text-blue-600 hover:text-blue-500">
+          <Link to="/signin" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300">
             Sign in
           </Link>
         </p>

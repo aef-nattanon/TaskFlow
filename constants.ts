@@ -31,6 +31,7 @@ export const MOCK_TASKS = [
     status: 'Active' as const,
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     dueDate: new Date(Date.now() + 172800000).toISOString().split('T')[0], // 2 days from now
+    order: 100,
   },
   {
     id: 't2',
@@ -41,6 +42,7 @@ export const MOCK_TASKS = [
     status: 'Active' as const,
     createdAt: new Date(Date.now() - 172800000).toISOString(),
     dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 1 day from now
+    order: 200,
   },
   {
     id: 't3',
@@ -52,6 +54,7 @@ export const MOCK_TASKS = [
     createdAt: new Date(Date.now() - 259200000).toISOString(),
     completedAt: new Date(Date.now() - 3600000).toISOString(),
     dueDate: new Date(Date.now() - 3600000).toISOString().split('T')[0], // Today
+    order: 300,
   },
   {
     id: 't4',
@@ -62,5 +65,6 @@ export const MOCK_TASKS = [
     status: 'Active' as const,
     createdAt: new Date(Date.now() - 400000).toISOString(),
     // No due date
+    order: 400,
   }
 ];

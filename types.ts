@@ -18,6 +18,7 @@ export interface Task {
   createdAt: string; // ISO Date string
   completedAt?: string;
   dueDate?: string; // YYYY-MM-DD
+  order: number;
 }
 
 export interface User {

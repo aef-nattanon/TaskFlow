@@ -7,6 +7,7 @@ interface AppState {
   tasks: Task[];
   categories: Category[];
   isAuthenticated: boolean;
+  theme: 'light' | 'dark';
 }
 
 type Action =
@@ -17,13 +18,23 @@ type Action =
   | { type: 'DELETE_TASK'; payload: string }
   | { type: 'TOGGLE_TASK_STATUS'; payload: string }
   | { type: 'ADD_CATEGORY'; payload: Category }
-  | { type: 'UPDATE_USER'; payload: Partial<User> };
+  | { type: 'UPDATE_USER'; payload: Partial<User> }
+  | { type: 'TOGGLE_THEME' };
+
+const getInitialTheme = (): 'light' | 'dark' => {
+  const storedTheme = localStorage.getItem('taskflow_theme');
+  if (storedTheme === 'dark' || storedTheme === 'light') {
+    return storedTheme;
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
 
 const initialState: AppState = {
   user: null,
   tasks: MOCK_TASKS,
   categories: DEFAULT_CATEGORIES,
   isAuthenticated: false,
+  theme: getInitialTheme(),
 };
 
 const AppContext = createContext<{
@@ -38,7 +49,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
     case 'LOGOUT':
       return { ...state, user: null, isAuthenticated: false };
     case 'ADD_TASK':
-      return { ...state, tasks: [action.payload, ...state.tasks] };
+      // Assign an order that puts it at the top or bottom. Here we put it at top (smaller order).
+      const minOrder = state.tasks.length > 0 ? Math.min(...state.tasks.map(t => t.order)) : 0;
+      const taskWithOrder = { ...action.payload, order: minOrder - 100 };
+      return { ...state, tasks: [taskWithOrder, ...state.tasks] };
     case 'UPDATE_TASK':
       return {
         ...state,
@@ -66,6 +80,10 @@ const appReducer = (state: AppState, action: Action): AppState => {
       const updatedUser = { ...state.user, ...action.payload };
       localStorage.setItem('taskflow_user', JSON.stringify(updatedUser));
       return { ...state, user: updatedUser };
+    case 'TOGGLE_THEME':
+      const newTheme = state.theme === 'light' ? 'dark' : 'light';
+      localStorage.setItem('taskflow_theme', newTheme);
+      return { ...state, theme: newTheme };
     default:
       return state;
   }

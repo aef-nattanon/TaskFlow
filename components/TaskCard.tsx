@@ -54,19 +54,24 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
 
   return (
     <div
-      className={`group relative flex flex-col sm:flex-row items-start sm:items-center bg-white border border-slate-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-all duration-200 ${
-        isCompleted ? 'opacity-60 bg-slate-50' : ''
+      className={`group relative flex flex-col sm:flex-row items-start sm:items-center bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 mb-4 shadow-sm hover:shadow-lg hover:border-blue-200 dark:hover:border-slate-600 transition-all duration-300 hover:-translate-y-0.5 ${
+        isCompleted ? 'opacity-60 bg-slate-50/50 dark:bg-slate-850/50' : ''
       }`}
-      style={{ borderLeftWidth: '4px', borderLeftColor: priorityColor }}
     >
+        {/* Priority stripe */}
+        <div 
+            className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl transition-all duration-300 group-hover:w-1.5" 
+            style={{ backgroundColor: priorityColor }}
+        />
+
       {/* Checkbox */}
-      <div className="flex-shrink-0 mr-4 mt-1 sm:mt-0">
+      <div className="flex-shrink-0 mr-4 ml-2 mt-1 sm:mt-0 z-10">
         <button
           onClick={handleToggle}
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
             isCompleted
-              ? 'bg-emerald-500 border-emerald-500 text-white'
-              : 'border-slate-300 text-transparent hover:border-blue-500'
+              ? 'bg-emerald-500 border-emerald-500 text-white scale-100'
+              : 'border-slate-300 dark:border-slate-500 text-transparent hover:border-blue-500 dark:hover:border-blue-400 hover:scale-110'
           }`}
         >
           <Check className="w-3.5 h-3.5" strokeWidth={3} />
@@ -74,37 +79,37 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
       </div>
 
       {/* Content */}
-      <div className="flex-grow min-w-0">
+      <div className="flex-grow min-w-0 z-10">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <h4
-            className={`text-base font-semibold text-slate-800 truncate ${
-              isCompleted ? 'line-through text-slate-500' : ''
+            className={`text-base font-semibold text-slate-800 dark:text-white truncate transition-all ${
+              isCompleted ? 'line-through text-slate-500 dark:text-slate-400' : ''
             }`}
           >
             {task.title}
           </h4>
           {category && (
             <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${category.color}`}
+              className={`px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider ${category.color} bg-opacity-10 border border-opacity-20 border-current`}
             >
               {category.name}
             </span>
           )}
           <span
-             className="px-2 py-0.5 rounded-full text-xs font-medium border"
+             className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider border border-opacity-30"
              style={{ borderColor: priorityColor, color: priorityColor }}
           >
             {task.priority}
           </span>
         </div>
-        <p className="text-sm text-slate-500 line-clamp-2">{task.description}</p>
-        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2">{task.description}</p>
+        <div className="flex items-center gap-4 mt-2 text-xs text-slate-400 dark:text-slate-500">
            <div className="flex items-center" title="Created At">
              <Clock className="w-3 h-3 mr-1" />
              {new Date(task.createdAt).toLocaleDateString()}
            </div>
            {formattedDueDate && (
-             <div className={`flex items-center font-medium ${isOverdue ? 'text-red-500' : 'text-slate-500'}`} title="Due Date">
+             <div className={`flex items-center font-medium ${isOverdue ? 'text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`} title="Due Date">
                <CalendarDays className="w-3 h-3 mr-1" />
                {formattedDueDate}
              </div>
@@ -113,17 +118,17 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 mt-3 sm:mt-0 sm:ml-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-2 mt-3 sm:mt-0 sm:ml-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10">
         <button
           onClick={() => onEdit(task)}
-          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+          className="p-2 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
           title="Edit"
         >
           <Edit2 className="w-4 h-4" />
         </button>
         <button
           onClick={handleDelete}
-          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+          className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
           title="Delete"
         >
           <Trash2 className="w-4 h-4" />

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useAppStore } from './store';
 import Landing from './pages/Landing';
@@ -6,6 +6,20 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+
+const ThemeController = () => {
+    const { state } = useAppStore();
+
+    useEffect(() => {
+        if (state.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [state.theme]);
+
+    return null;
+}
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { state } = useAppStore();
@@ -28,6 +42,8 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const AppRoutes = () => {
     return (
+        <>
+        <ThemeController />
         <Routes>
             <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
             <Route path="/signin" element={<PublicRoute><SignIn /></PublicRoute>} />
@@ -51,6 +67,7 @@ const AppRoutes = () => {
              {/* 404 Fallback */}
              <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </>
     )
 }
 

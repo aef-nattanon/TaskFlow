@@ -38,13 +38,13 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
 
       {/* Sidebar Content */}
       <aside
-        className={`fixed lg:sticky top-0 lg:top-[64px] left-0 h-full lg:h-[calc(100vh-64px)] w-64 bg-white border-r border-slate-200 transform transition-transform duration-200 ease-in-out z-30 ${
+        className={`fixed lg:sticky top-0 lg:top-[64px] left-0 h-full lg:h-[calc(100vh-64px)] w-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-r border-slate-200/50 dark:border-slate-700/50 transform transition-transform duration-200 ease-in-out z-30 ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="p-6">
           <div className="mb-8">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
               Views
             </h3>
             <nav className="space-y-1">
@@ -52,8 +52,8 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
                 onClick={() => handleFilterChange('status', 'All')}
                 className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'list' && filters.status === 'All'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-700 hover:bg-slate-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 mr-3" />
@@ -63,8 +63,8 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
                 onClick={() => handleViewChange('calendar')}
                 className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'calendar'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-700 hover:bg-slate-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <CalendarDays className="w-4 h-4 mr-3" />
@@ -74,8 +74,8 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
                 onClick={() => handleFilterChange('status', 'Active')}
                 className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'list' && filters.status === 'Active'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-700 hover:bg-slate-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <CheckSquare className="w-4 h-4 mr-3" />
@@ -85,8 +85,8 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
                 onClick={() => handleFilterChange('status', 'Completed')}
                 className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'list' && filters.status === 'Completed'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-700 hover:bg-slate-50'
+                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                 }`}
               >
                 <CalendarIcon className="w-4 h-4 mr-3" />
@@ -96,14 +96,16 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
           </div>
 
           <div className="mb-8">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
               Categories
             </h3>
             <div className="space-y-1">
               <button
                  onClick={() => handleFilterChange('categoryId', 'All')}
                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    viewMode === 'list' && filters.categoryId === 'All' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'
+                    viewMode === 'list' && filters.categoryId === 'All' 
+                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white' 
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                  }`}
               >
                   <Tag className="w-4 h-4 mr-3 text-slate-400" />
@@ -115,8 +117,8 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
                   onClick={() => handleFilterChange('categoryId', cat.id)}
                   className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     viewMode === 'list' && filters.categoryId === cat.id
-                      ? 'bg-slate-100 text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full mr-3 ${cat.color.split(' ')[0].replace('bg-', 'bg-')}`} style={{backgroundColor: 'currentColor'}} />
@@ -127,7 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
           </div>
 
           <div>
-             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">
+             <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-4">
               Priority
             </h3>
             <div className="space-y-1">
@@ -137,8 +139,8 @@ const Sidebar: React.FC<SidebarProps> = ({ filters, setFilters, viewMode, setVie
                      onClick={() => handleFilterChange('priority', filters.priority === p ? 'All' : p)}
                      className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                        viewMode === 'list' && filters.priority === p
-                         ? 'bg-slate-100 text-slate-900'
-                         : 'text-slate-600 hover:bg-slate-50'
+                         ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                      }`}
                    >
                      <Filter className="w-4 h-4 mr-3 text-slate-400" />
