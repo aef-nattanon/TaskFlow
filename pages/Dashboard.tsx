@@ -38,6 +38,16 @@ const Dashboard: React.FC = () => {
     search: '',
   });
 
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm }));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Form State
   const [formData, setFormData] = useState<{
     title: string;
@@ -60,20 +70,20 @@ const Dashboard: React.FC = () => {
         const matchesStatus = filters.status === 'All' ? true : task.status === filters.status;
         const matchesPriority = filters.priority === 'All' ? true : task.priority === filters.priority;
         const matchesCategory = filters.categoryId === 'All' ? true : task.categoryId === filters.categoryId;
-        const matchesSearch = task.title.toLowerCase().includes(filters.search.toLowerCase()) || 
-                              task.description.toLowerCase().includes(filters.search.toLowerCase());
+        const matchesSearch = task.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+          task.description.toLowerCase().includes(filters.search.toLowerCase());
         return matchesStatus && matchesPriority && matchesCategory && matchesSearch;
       })
       .sort((a, b) => {
         if (sortBy === 'manual') {
-            return (a.order || 0) - (b.order || 0);
+          return (a.order || 0) - (b.order || 0);
         } else if (sortBy === 'date') {
-             return new Date(a.dueDate || '9999-12-31').getTime() - new Date(b.dueDate || '9999-12-31').getTime();
+          return new Date(a.dueDate || '9999-12-31').getTime() - new Date(b.dueDate || '9999-12-31').getTime();
         } else {
-             // Default: Priority
-            const pDiff = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
-            if (pDiff !== 0) return pDiff;
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          // Default: Priority
+          const pDiff = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
+          if (pDiff !== 0) return pDiff;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
       });
   }, [state.tasks, filters, sortBy]);
@@ -128,10 +138,10 @@ const Dashboard: React.FC = () => {
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    
+
     const sourceIndex = result.source.index;
     const destIndex = result.destination.index;
-    
+
     if (sourceIndex === destIndex) return;
 
     const newOrderedTasks = [...filteredTasks];
@@ -144,21 +154,21 @@ const Dashboard: React.FC = () => {
     const nextTask = newOrderedTasks[destIndex + 1];
 
     if (!prevTask && !nextTask) {
-        newOrder = 0;
+      newOrder = 0;
     } else if (!prevTask) {
-        // Moved to top
-        newOrder = (nextTask.order || 0) - 100;
+      // Moved to top
+      newOrder = (nextTask.order || 0) - 100;
     } else if (!nextTask) {
-        // Moved to bottom
-        newOrder = (prevTask.order || 0) + 100;
+      // Moved to bottom
+      newOrder = (prevTask.order || 0) + 100;
     } else {
-        // Between two tasks
-        newOrder = ((prevTask.order || 0) + (nextTask.order || 0)) / 2;
+      // Between two tasks
+      newOrder = ((prevTask.order || 0) + (nextTask.order || 0)) / 2;
     }
 
     dispatch({
-        type: 'UPDATE_TASK',
-        payload: { ...movedTask, order: newOrder }
+      type: 'UPDATE_TASK',
+      payload: { ...movedTask, order: newOrder }
     });
     // Persist to server
     api.updateTask(movedTask.id, { order: newOrder });
@@ -190,8 +200,8 @@ const Dashboard: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search tasks..."
-                value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-full focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-blue-500 text-sm transition-all text-slate-900 dark:text-white placeholder-slate-400"
               />
             </div>
@@ -213,31 +223,31 @@ const Dashboard: React.FC = () => {
           </Button>
           <div className="relative group">
             <button className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-               <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 ring-2 ring-transparent group-hover:ring-blue-500/20 transition-all">
-                 <UserIcon className="w-5 h-5" />
-               </div>
+              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 ring-2 ring-transparent group-hover:ring-blue-500/20 transition-all">
+                <UserIcon className="w-5 h-5" />
+              </div>
             </button>
-             {/* Dropdown Menu */}
-             <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-md shadow-lg py-1 border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-right z-50">
-                <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">{state.user?.name || 'User'}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{state.user?.email}</p>
-                </div>
-                <Link
-                    to="/profile"
-                    className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center"
-                >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Settings
-                </Link>
-                <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center"
-                >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                </button>
-             </div>
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-md shadow-lg py-1 border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-right z-50">
+              <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-700">
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{state.user?.name || 'User'}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{state.user?.email}</p>
+              </div>
+              <Link
+                to="/profile"
+                className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -253,157 +263,157 @@ const Dashboard: React.FC = () => {
         />
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-8 w-full max-w-7xl mx-auto">
-            {/* Header / Greeting */}
-            <div className="mb-8 animate-fade-in-up">
-                <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    {greeting}, <span className="text-blue-600 dark:text-blue-400">{state.user?.name.split(' ')[0] || 'User'}</span>
-                </h1>
-                <p className="text-slate-500 dark:text-slate-400 mt-1">
-                    Here's what's happening with your tasks today.
-                </p>
+          {/* Header / Greeting */}
+          <div className="mb-8 animate-fade-in-up">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              {greeting}, <span className="text-blue-600 dark:text-blue-400">{state.user?.name.split(' ')[0] || 'User'}</span>
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
+              Here's what's happening with your tasks today.
+            </p>
+          </div>
+
+          {/* Stats Section */}
+          {viewMode === 'list' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in-up">
+              {/* Pending Card */}
+              <div className="relative overflow-hidden bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/50 group hover:shadow-md transition-all">
+                <div className="relative z-10">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Tasks</p>
+                  <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-2">
+                    {state.tasks.filter(t => t.status === 'Active').length}
+                  </p>
+                </div>
+                <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
+                  <ListTodo className="w-24 h-24 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-transparent opacity-50"></div>
+              </div>
+
+              {/* Completed Card */}
+              <div className="relative overflow-hidden bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/50 group hover:shadow-md transition-all">
+                <div className="relative z-10">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed Today</p>
+                  <p className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">
+                    {state.tasks.filter(t =>
+                      t.status === 'Completed' &&
+                      t.completedAt &&
+                      new Date(t.completedAt).toDateString() === new Date().toDateString()
+                    ).length}
+                  </p>
+                </div>
+                <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
+                  <CheckCircle2 className="w-24 h-24 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-transparent opacity-50"></div>
+              </div>
+
+              {/* Chart Card */}
+              <div className="col-span-1 md:col-span-1 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/50 overflow-hidden">
+                <StatsChart tasks={state.tasks} />
+              </div>
             </div>
+          )}
 
-            {/* Stats Section */}
-            {viewMode === 'list' && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in-up">
-                    {/* Pending Card */}
-                    <div className="relative overflow-hidden bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/50 group hover:shadow-md transition-all">
-                        <div className="relative z-10">
-                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pending Tasks</p>
-                            <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-2">
-                                {state.tasks.filter(t => t.status === 'Active').length}
-                            </p>
-                        </div>
-                        <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                             <ListTodo className="w-24 h-24 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-transparent opacity-50"></div>
+          {/* View Content */}
+          {viewMode === 'list' ? (
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  {filters.status === 'All' ? 'All Tasks' : `${filters.status} Tasks`}
+                  <span className="text-sm font-normal text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                    {filteredTasks.length}
+                  </span>
+                </h2>
+                <div className="flex items-center gap-2">
+                  {/* Sort Dropdown */}
+                  <div className="relative group z-20">
+                    <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-full text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                      <ArrowUpDown className="w-4 h-4" />
+                      Sort: {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
+                    </button>
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-right transform scale-95 group-hover:scale-100">
+                      <button onClick={() => setSortBy('priority')} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 first:rounded-t-xl ${sortBy === 'priority' ? 'text-blue-600 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>Priority (Default)</button>
+                      <button onClick={() => setSortBy('date')} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 ${sortBy === 'date' ? 'text-blue-600 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>Due Date</button>
+                      <button onClick={() => setSortBy('manual')} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 last:rounded-b-xl ${sortBy === 'manual' ? 'text-blue-600 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>Manual Order</button>
                     </div>
+                  </div>
 
-                    {/* Completed Card */}
-                    <div className="relative overflow-hidden bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/50 group hover:shadow-md transition-all">
-                        <div className="relative z-10">
-                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Completed Today</p>
-                            <p className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2">
-                                {state.tasks.filter(t => 
-                                    t.status === 'Completed' && 
-                                    t.completedAt && 
-                                    new Date(t.completedAt).toDateString() === new Date().toDateString()
-                                ).length}
-                            </p>
-                        </div>
-                         <div className="absolute right-0 top-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                             <CheckCircle2 className="w-24 h-24 text-emerald-600 dark:text-emerald-400" />
-                        </div>
-                        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-transparent opacity-50"></div>
-                    </div>
-
-                    {/* Chart Card */}
-                    <div className="col-span-1 md:col-span-1 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700/50 overflow-hidden">
-                        <StatsChart tasks={state.tasks} />
-                    </div>
+                  <Button onClick={handleOpenCreate} size="sm" className="sm:hidden rounded-full shadow-lg shadow-blue-500/20">
+                    <Plus className="w-4 h-4" />
+                  </Button>
                 </div>
-            )}
+              </div>
 
-            {/* View Content */}
-            {viewMode === 'list' ? (
-                <>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            {filters.status === 'All' ? 'All Tasks' : `${filters.status} Tasks`}
-                            <span className="text-sm font-normal text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                                {filteredTasks.length}
-                            </span>
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            {/* Sort Dropdown */}
-                            <div className="relative group z-20">
-                                <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-full text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                                    <ArrowUpDown className="w-4 h-4" />
-                                    Sort: {sortBy.charAt(0).toUpperCase() + sortBy.slice(1)}
-                                </button>
-                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 origin-top-right transform scale-95 group-hover:scale-100">
-                                    <button onClick={() => setSortBy('priority')} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 first:rounded-t-xl ${sortBy === 'priority' ? 'text-blue-600 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>Priority (Default)</button>
-                                    <button onClick={() => setSortBy('date')} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 ${sortBy === 'date' ? 'text-blue-600 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>Due Date</button>
-                                    <button onClick={() => setSortBy('manual')} className={`w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 last:rounded-b-xl ${sortBy === 'manual' ? 'text-blue-600 font-medium' : 'text-slate-700 dark:text-slate-300'}`}>Manual Order</button>
-                                </div>
-                            </div>
-                            
-                            <Button onClick={handleOpenCreate} size="sm" className="sm:hidden rounded-full shadow-lg shadow-blue-500/20">
-                                <Plus className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    </div>
+              {(filters.priority !== 'All' || filters.categoryId !== 'All') && (
+                <div className="flex gap-2 mb-4 flex-wrap">
+                  {filters.priority !== 'All' && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                      Priority: {filters.priority}
+                      <button onClick={() => setFilters(prev => ({ ...prev, priority: 'All' }))} className="ml-2 hover:text-blue-900 dark:hover:text-blue-100"><UserIcon className="w-3 h-3 rotate-45" /></button>
+                    </span>
+                  )}
+                </div>
+              )}
 
-                    {(filters.priority !== 'All' || filters.categoryId !== 'All') && (
-                        <div className="flex gap-2 mb-4 flex-wrap">
-                            {filters.priority !== 'All' && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
-                                    Priority: {filters.priority}
-                                    <button onClick={() => setFilters(prev => ({...prev, priority: 'All'}))} className="ml-2 hover:text-blue-900 dark:hover:text-blue-100"><UserIcon className="w-3 h-3 rotate-45" /></button>
-                                </span>
-                            )}
-                        </div>
-                    )}
-
-                    <div className="space-y-3 pb-20">
-                        {filteredTasks.length > 0 ? (
-                            sortBy === 'manual' ? (
-                                <DragDropContext onDragEnd={onDragEnd}>
-                                    <Droppable droppableId="tasks">
-                                        {(provided) => (
-                                            <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-3">
-                                                {filteredTasks.map((task, index) => (
-                                                    <Draggable key={task.id} draggableId={task.id} index={index}>
-                                                        {(provided, snapshot) => (
-                                                            <div
-                                                                ref={provided.innerRef}
-                                                                {...provided.draggableProps}
-                                                                style={{
-                                                                    ...provided.draggableProps.style,
-                                                                    opacity: snapshot.isDragging ? 0.8 : 1
-                                                                }}
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                     <div {...provided.dragHandleProps} className="text-slate-400 hover:text-slate-600 cursor-grab active:cursor-grabbing p-1">
-                                                                        <GripVertical className="w-5 h-5" />
-                                                                     </div>
-                                                                     <div className="flex-1 min-w-0">
-                                                                         <TaskCard task={task} onEdit={handleOpenEdit} />
-                                                                     </div>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </Draggable>
-                                                ))}
-                                                {provided.placeholder}
-                                            </div>
-                                        )}
-                                    </Droppable>
-                                </DragDropContext>
-                            ) : (
-                                filteredTasks.map((task) => (
-                                    <TaskCard key={task.id} task={task} onEdit={handleOpenEdit} />
-                                ))
-                            )
-                        ) : (
-                        <div className="text-center py-20 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 transition-colors">
-                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-700/50 mb-4 shadow-inner">
-                            <Search className="h-8 w-8 text-slate-400 dark:text-slate-300" />
-                            </div>
-                            <h3 className="text-lg font-medium text-slate-900 dark:text-white">No tasks found</h3>
-                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            Try adjusting your search or filters, or create a new task.
-                            </p>
-                        </div>
+              <div className="space-y-3 pb-20">
+                {filteredTasks.length > 0 ? (
+                  sortBy === 'manual' ? (
+                    <DragDropContext onDragEnd={onDragEnd}>
+                      <Droppable droppableId="tasks">
+                        {(provided) => (
+                          <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-3">
+                            {filteredTasks.map((task, index) => (
+                              <Draggable key={task.id} draggableId={task.id} index={index}>
+                                {(provided, snapshot) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    style={{
+                                      ...provided.draggableProps.style,
+                                      opacity: snapshot.isDragging ? 0.8 : 1
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <div {...provided.dragHandleProps} className="text-slate-400 hover:text-slate-600 cursor-grab active:cursor-grabbing p-1">
+                                        <GripVertical className="w-5 h-5" />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <TaskCard task={task} onEdit={handleOpenEdit} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
                         )}
+                      </Droppable>
+                    </DragDropContext>
+                  ) : (
+                    filteredTasks.map((task) => (
+                      <TaskCard key={task.id} task={task} onEdit={handleOpenEdit} />
+                    ))
+                  )
+                ) : (
+                  <div className="text-center py-20 bg-white/40 dark:bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 transition-colors">
+                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-700/50 mb-4 shadow-inner">
+                      <Search className="h-8 w-8 text-slate-400 dark:text-slate-300" />
                     </div>
-                </>
-            ) : (
-                <div className="animate-fade-in-up pb-20">
-                    <CalendarView tasks={state.tasks} onEditTask={handleOpenEdit} />
-                </div>
-            )}
+                    <h3 className="text-lg font-medium text-slate-900 dark:text-white">No tasks found</h3>
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      Try adjusting your search or filters, or create a new task.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="animate-fade-in-up pb-20">
+              <CalendarView tasks={state.tasks} onEditTask={handleOpenEdit} />
+            </div>
+          )}
         </main>
       </div>
 
@@ -422,7 +432,7 @@ const Dashboard: React.FC = () => {
             required
             autoFocus
           />
-          
+
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
             <textarea
@@ -435,11 +445,11 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-             <Input
-                label="Due Date"
-                type="date"
-                value={formData.dueDate}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+            <Input
+              label="Due Date"
+              type="date"
+              value={formData.dueDate}
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
             />
 
             <div>
