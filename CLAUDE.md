@@ -4,40 +4,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-- `npm run dev` — start Vite dev server (port 3000, host 0.0.0.0)
-- `npm run build` — production build
-- `npm run preview` — preview production build
-
-No test runner, linter, or formatter is configured.
+- `npm run dev` — start both Frontend (Vite) and Backend (Express) in dev mode
+- `npm run client` — start only Frontend
+- `npm run server` — start only Backend (port 3001)
+- `npm run build` — build frontend for production
+- `docker compose up --build` — build and start full stack in Docker
 
 ## Architecture
 
-TaskFlow is a client-side-only React 19 + TypeScript SPA for task management, built with Vite.
+TaskFlow is a **full-stack** application:
 
-**Entry flow:** `index.tsx` → `App.tsx` (AppProvider + HashRouter) → route guards → pages
+1.  **Frontend**: React 19 + TypeScript + Vite.
+    *   **Styling**: Tailwind CSS (local, v3), Dark mode class-based.
+    *   **State**: Global Context `store.tsx`.
+    *   **Routing**: `react-router-dom` with Lazy Loading.
+    *   **API**: Axois/Fetch wrapper in `lib/api.ts`.
 
-**State management:** Single `useReducer` + React Context in `store.tsx`. Actions: `LOGIN`, `LOGOUT`, `ADD_TASK`, `UPDATE_TASK`, `DELETE_TASK`, `TOGGLE_TASK_STATUS`, `ADD_CATEGORY`, `UPDATE_USER`, `TOGGLE_THEME`. Auth and theme persist to `localStorage`.
+2.  **Backend**: Node.js + Express.
+    *   **Database**: PostgreSQL via Prisma ORM.
+    *   **Validation**: Zod via `middleware/validate.ts`.
+    *   **Security**: Helmet, Rate Limit, CORS.
+    *   **Auth**: JWT (Bearer token).
 
-**Routing:** HashRouter with two guard components — `ProtectedRoute` (redirects unauthenticated to `/signin`) and `PublicRoute` (redirects authenticated to `/dashboard`).
-
-**Authentication is fully mocked** — no backend. SignIn/SignUp simulate a delay then store a user object in localStorage.
-
-**Styling:** Tailwind CSS loaded via CDN `<script>` tag in `index.html` (not PostCSS). Dark mode is class-based. Custom animations and colors are configured inline in the `tailwind.config` block in `index.html`.
-
-**Import maps:** `index.html` contains an importmap pointing to `esm.sh` CDN URLs (for AI Studio browser compatibility). Vite resolves from `node_modules` during local dev.
+3.  **Infrastructure**:
+    *   **Docker**: Multi-stage builds for client (Nginx) and server (Node).
+    *   **Nginx**: Serves static assets + Reverse proxies `/api/*` to backend.
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `store.tsx` | Global state (Context + useReducer), localStorage persistence |
-| `types.ts` | All TypeScript types (`Task`, `User`, `Category`, `FilterState`) |
-| `constants.ts` | Priority colors, ordering, mock seed data |
-| `App.tsx` | Router setup, route guards, theme controller |
-| `pages/Dashboard.tsx` | Main view: task list, filtering, drag-and-drop, calendar, stats |
+| `docker-compose.yml` | Orchestrates Client, Server, and PostgreSQL |
+| `server/prisma/schema.prisma` | Database Schema (User, Task, Category) |
+| `server/src/app.ts` | Express entry point, middleware setup |
+| `server/src/middleware/validate.ts` | Zod validation middleware |
+| `server/src/schemas/*.ts` | Zod validation schemas |
+| `nginx.conf` | Production web server config |
+| `tailwind.config.js` | Tailwind CSS configuration |
+| `store.tsx` | Frontend State Management |
 
-## Key Patterns
+## Development Patterns
 
-- **Drag-and-drop** uses `@hello-pangea/dnd`. Manual sort mode calculates order values as midpoints between neighbors.
-- **Path alias:** `@` maps to project root (configured in both `vite.config.ts` and `tsconfig.json`).
-- **Data model:** Tasks have `priority` (Urgent/High/Medium/Low), `status` (Active/Completed), and numeric `order` for drag sorting.
+- **Validation**: ALWAYS create/update Zod schemas in `server/src/schemas/` when changing API inputs.
+- **Styling**: Use Tailwind utility classes. Avoid inline styles.
+- **Performance**: Use `React.memo` for list items. Debounce heavy user inputs.
+- **Docker**: If adding dependencies, remember to rebuild images (`docker compose up --build`).
+- **Security**:
+    - Secrets handling: Use env vars (never commit secrets).
+    - Validation: Validate ALL inputs on the backend.
+    - Rate Limiting: Strict limits on Auth endpoints.
