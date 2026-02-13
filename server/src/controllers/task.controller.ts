@@ -94,7 +94,7 @@ export async function createTask(req: Request, res: Response, next: NextFunction
 
 export async function updateTask(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const userId = req.userId!;
 
     const existing = await prisma.task.findFirst({ where: { id, userId } });
@@ -123,7 +123,7 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
       if (!category) {
         throw new AppError('Category not found', 404);
       }
-      data.categoryId = req.body.categoryId;
+      data.category = { connect: { id: req.body.categoryId } };
     }
 
     if (req.body.status !== undefined) {
@@ -134,7 +134,7 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
       data.completedAt = req.body.status === 'Completed' ? new Date() : null;
     }
 
-    const task = await prisma.task.update({ where: { id }, data });
+    const task = await prisma.task.update({ where: { id: id as string }, data });
 
     return res.json({ task: serializeTask(task) });
   } catch (err) {
@@ -144,7 +144,7 @@ export async function updateTask(req: Request, res: Response, next: NextFunction
 
 export async function toggleTask(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const userId = req.userId!;
 
     const existing = await prisma.task.findFirst({ where: { id, userId } });
@@ -154,7 +154,7 @@ export async function toggleTask(req: Request, res: Response, next: NextFunction
 
     const newStatus = existing.status === 'Active' ? 'Completed' : 'Active';
     const task = await prisma.task.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         status: newStatus,
         completedAt: newStatus === 'Completed' ? new Date() : null,
@@ -169,7 +169,7 @@ export async function toggleTask(req: Request, res: Response, next: NextFunction
 
 export async function deleteTask(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const userId = req.userId!;
 
     const existing = await prisma.task.findFirst({ where: { id, userId } });
@@ -177,7 +177,7 @@ export async function deleteTask(req: Request, res: Response, next: NextFunction
       throw new AppError('Task not found', 404);
     }
 
-    await prisma.task.delete({ where: { id } });
+    await prisma.task.delete({ where: { id: id as string } });
 
     return res.json({ message: 'Task deleted' });
   } catch (err) {
